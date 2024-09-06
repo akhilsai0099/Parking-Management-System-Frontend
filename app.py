@@ -110,8 +110,9 @@ elif st.session_state["token"]:
                     except requests.exceptions.RequestException as e:
                         st.error(f"Error creating parking spot: {e}")
 
+
+        st.subheader("All Parking Spots")
         response = requests.get(f"{BASE_URL}/parking_spots/", headers=headers)
-        response.raise_for_status()
         parking_spots = response.json()
         df = pd.DataFrame(parking_spots)
         st.table(df)
@@ -158,4 +159,4 @@ elif st.session_state["token"]:
                     except requests.exceptions.RequestException as e:
                         st.error(f"Error deleting parking spot: {e}")
 
-            
+        
