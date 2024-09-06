@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 from streamlit_cookies_controller import CookieController
-
+import time
 BASE_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(page_title="Parking Management System")
@@ -57,6 +57,13 @@ def authenticate():
                 return False
         return False
 
+def handleLogout():
+    st.session_state['token'] = None
+    st.session_state['role'] = None
+    controller.remove('token')
+    controller.remove('role')
+
+
 cookies= controller.getAll()
 if 'token' in cookies:
     st.session_state['token'] = cookies['token']
@@ -65,9 +72,17 @@ if 'token' in cookies:
 if 'token' not in st.session_state:
     is_authenticated = authenticate()
     if is_authenticated:
-        st.button("You have sucessfully logged in, Click to continue")
+        st.rerun()
 
-else:
+elif st.session_state["token"]:
+    if st.session_state["token"] and st.button("Logout"):
+        del st.session_state['token']
+        del st.session_state['role']
+        controller.remove('token')
+        controller.remove('role')
+        time.sleep(1)   
+        st.rerun()
+
     if st.session_state['role']:
         st.subheader("Add Parking Spot")
         with st.form(key="parking_spot_form"):
