@@ -1,7 +1,9 @@
 import streamlit as st
 import requests
 from streamlit_cookies_controller import CookieController
+import pandas as pd
 import time
+
 BASE_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(page_title="Parking Management System")
@@ -10,8 +12,6 @@ st.set_page_config(page_title="Parking Management System")
 st.title("Parking Management System")
 controller = CookieController()
 def authenticate():
-    if "token" in st.session_state:
-        return True
     login_register = st.selectbox("Login or Register", ["Login", "Register"])
 
     if login_register == "Login":
@@ -31,6 +31,7 @@ def authenticate():
                     controller.set('role', role)
                     st.session_state["token"] = token
                     st.session_state["role"] = role
+                    time.sleep(1)
                     return True
                 else:
                     st.error("Invalid email or password")
@@ -57,11 +58,6 @@ def authenticate():
                 return False
         return False
 
-def handleLogout():
-    st.session_state['token'] = None
-    st.session_state['role'] = None
-    controller.remove('token')
-    controller.remove('role')
 
 
 cookies= controller.getAll()
@@ -83,6 +79,9 @@ elif st.session_state["token"]:
         time.sleep(1)   
         st.rerun()
 
+    headers = {
+                "Authorization": st.session_state['token']
+            }
     if st.session_state['role']:
         st.subheader("Add Parking Spot")
         with st.form(key="parking_spot_form"):
@@ -94,48 +93,69 @@ elif st.session_state["token"]:
             submit_button = st.form_submit_button("Add Spot")
 
             if submit_button:
-                data = {
-                    "level": level,
-                    "section": section,
-                    "spot_number": spot_number,
-                    "vehicle_type": vehicle_type,
-                    "is_occupied": is_occupied
-                }
-                response = requests.post(f"{BASE_URL}/parking_spots/", json=data)
-                st.write(response.json())
+                if not (level and section and spot_number and vehicle_type):
+                    st.error("All fields must be filled in")
+                else:
+                    data = {
+                        "level": level,
+                        "section": section,
+                        "spot_number": spot_number,
+                        "vehicle_type": vehicle_type,
+                        "is_occupied": is_occupied
+                    }
+                    try:
+                        response = requests.post(f"{BASE_URL}/parking_spots/", json=data, headers=headers)
+                        response.raise_for_status()
+                        st.success("Parking spot created successfully")
+                    except requests.exceptions.RequestException as e:
+                        st.error(f"Error creating parking spot: {e}")
 
-    st.subheader("Add Vehicle")
-    with st.form(key="vehicle_form"):
-        license_plate = st.text_input("License Plate")
-        vehicle_type = st.selectbox("Vehicle Type", ["Car", "Motorcycle", "Truck"])
-        owner_name = st.text_input("Owner Name")
-        contact_number = st.text_input("Contact Number")
-        submit_vehicle = st.form_submit_button("Add Vehicle")
+        response = requests.get(f"{BASE_URL}/parking_spots/", headers=headers)
+        response.raise_for_status()
+        parking_spots = response.json()
+        df = pd.DataFrame(parking_spots)
+        st.table(df)
 
-        if submit_vehicle:
-            data = {
-                "license_plate": license_plate,
-                "vehicle_type": vehicle_type,
-                "owner_name": owner_name,
-                "contact_number": contact_number
-            }
-            response = requests.post(f"{BASE_URL}/vehicles/", json=data)
-            st.write(response.json())
+        
+        spot_id = st.number_input("Enter the ID of the parking spot to update or delete",step=1, value=None)
+        
+        if spot_id:
+            parking_spot = df.loc[df['id'] == spot_id].to_dict('records')[0] if spot_id in df['id'].values else None
+            if parking_spot:
+                with st.form(key="update_spot_form"):
+                    level = st.number_input("Level", value=parking_spot['level'])
+                    section = st.text_input("Section", value=parking_spot['section'])
+                    spot_number = st.number_input("Spot Number", value=parking_spot['spot_number'])
+                    vehicle_type = st.selectbox("Vehicle Type", ["Car", "Motorcycle", "Truck"], index=["Car", "Motorcycle", "Truck"].index(parking_spot['vehicle_type']))
+                    is_occupied = st.checkbox("Is Occupied", value=parking_spot['is_occupied'])
+                    submit_button = st.form_submit_button("Update Spot")
 
-    st.subheader("Book Parking Session")
-    with st.form(key="Parking Session Form"):
-        vehicle_id = st.selectbox("Vehicle Type", ["Car", "Motorcycle", "Truck"])
+                    if submit_button:
+                        if not (level and section and spot_number and vehicle_type):
+                            st.error("All fields must be filled in")
+                        else:
+                            data = {
+                                "level": level,
+                                "section": section,
+                                "spot_number": spot_number,
+                                "vehicle_type": vehicle_type,
+                                "is_occupied": is_occupied
+                            }
+                            try:
+                                response = requests.put(f"{BASE_URL}/parking_spots/{spot_id}", json=data, headers=headers)
+                                st.success("Parking spot updated successfully")
+                                st.rerun()
+                            except requests.exceptions.RequestException as e:
+                                st.error(f"Error updating parking spot: {e}")
 
-        entry_time = st.time_input("Entry Time")
-        exit_time = st.time_input("Exit Time")
-        submit_session = st.form_submit_button("Book Session")
+                delete_button = st.button("Delete Spot", type='primary')
 
-        if submit_vehicle:
-            data = {
-                "license_plate": license_plate,
-                "vehicle_type": vehicle_type,
-                "owner_name": owner_name,
-                "contact_number": contact_number
-            }
-            response = requests.post(f"{BASE_URL}/vehicles/", json=data)
-            st.write(response.json())
+                if delete_button:
+                    try:
+                        response = requests.delete(f"{BASE_URL}/parking_spots/{spot_id}", headers=headers)
+                        st.success("Parking spot deleted successfully")
+                        st.rerun()
+                    except requests.exceptions.RequestException as e:
+                        st.error(f"Error deleting parking spot: {e}")
+
+            
