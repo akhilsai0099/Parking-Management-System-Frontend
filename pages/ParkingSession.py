@@ -63,12 +63,22 @@ def parking_session_form():
 
 def parking_sessions():
 
-	st.subheader("Parking Sessions")
+	st.subheader("Active Parking Sessions")
 
 	response = requests.get(f"{BASE_URL}/parking_sessions/", headers=headers)
 	parkingSessionsJson = response.json()
-	parkingSessions = [parkingSession for parkingSession in parkingSessionsJson]
-	st.dataframe(parkingSessions)
+	parkingSessions = [parkingSession for parkingSession in parkingSessionsJson if parkingSession['actual_exit_time'] is None]
+	if len(parkingSessions)>0:
+		st.dataframe(parkingSessions, use_container_width=True)
+	else:
+		st.write("No active parking sessions")
+
+	st.subheader("Previous Parking Sessions")
+	prev_parking_session = [parkingSession for parkingSession in parkingSessionsJson if parkingSession['actual_exit_time'] is not None]
+	if len(prev_parking_session)>0:
+		st.dataframe(prev_parking_session, use_container_width=True)
+	else:
+		st.write("No Prev parking Sessions")
 
 def main():
 	if "token" in st.session_state:

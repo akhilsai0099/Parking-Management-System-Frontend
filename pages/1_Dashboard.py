@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Dashboard")
+st.set_page_config(page_title="Dashboard", layout="wide")
 BASE_URL = "http://127.0.0.1:8000"
 if "token" in st.session_state:
 	headers = {
@@ -11,7 +11,7 @@ if "token" in st.session_state:
 		}
 	response = requests.get(f"{BASE_URL}/parking_spots/", headers=headers)
 	parking_spots = response.json()
-	df = pd.DataFrame(parking_spots)
+	df = [parking_spot for parking_spot in parking_spots]
 else:
 	headers = {
 			"Authorization": ""
@@ -23,18 +23,18 @@ def dashboard():
 	st.title("Dashboard")
 	st.write("-----")
 	col1, col2 = st.columns(2)
-
-	with col1:
-		st.subheader("Free Parking Spots")
-		free_spots = df.loc[df['is_occupied'] == False]
-		st.table(free_spots)
-	with col2:
-		st.subheader("Active Parking Spots")
-		occupied_spots = df.loc[df['is_occupied'] == True]
-		st.table(occupied_spots)
-	col1, col2 = st.columns(2)
-	with col1:
-		parking_occupancy_chart()
+	if df is not None:
+		with col1:
+			st.subheader("Free Parking Spots")
+			free_spots = [free_spot for free_spot in df if not free_spot['is_occupied']]
+			st.dataframe(free_spots)
+		with col2:
+			st.subheader("Active Parking Spots")
+			occupied_spots = [free_spot for free_spot in df if free_spot['is_occupied']]
+			st.table(occupied_spots)
+		col1, col2 = st.columns(2)
+		with col1:
+			parking_occupancy_chart()
 
 def parking_occupancy_chart():
 	import plotly.express as px

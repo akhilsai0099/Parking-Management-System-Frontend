@@ -118,8 +118,8 @@ elif st.session_state["token"]:
         st.subheader("All Parking Spots")
         response = requests.get(f"{BASE_URL}/parking_spots/", headers=headers)
         parking_spots = response.json()
-        df = pd.DataFrame(parking_spots)
-        st.table(df)
+        df = [parking_spot for parking_spot in parking_spots]
+        st.dataframe(df, use_container_width=True)
 
         
         spot_id = st.number_input("Enter the ID of the parking spot to update or delete",step=1, value=None)

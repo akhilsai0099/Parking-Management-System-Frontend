@@ -43,19 +43,19 @@ def existing_vehicles():
 	st.subheader("Existing Vehicles")
 	existing_vehicles = requests.get(f"{BASE_URL}/vehicles/", headers=headers)
 	existing_vehicles_json = existing_vehicles.json()
-	df = pd.DataFrame(existing_vehicles_json)
+	df = [vehicle for vehicle in existing_vehicles_json]
 
-	st.table(df)
+	st.dataframe(df, use_container_width=True)
 
 	vehicle_id = st.text_input("Enter Vehicle ID to Update/Delete", help="Enter the ID of the vehicle you want to update or delete")
 	if vehicle_id:
-		vehicle = df.loc[df['id'] == int(vehicle_id)] if int(vehicle_id) in df['id'].values else None
+		vehicle = next((v for v in df if v['id'] == int(vehicle_id)), None)
 		if vehicle is not None:
 			with st.form(key="edit_vehicle_form"):
-				license_plate = st.text_input("License Plate", key=f"{vehicle_id}_license_plate", value = vehicle['license_plate'].values[0])
-				vehicle_type = st.selectbox("Vehicle Type", ["Car", "Motorcycle", "Truck"], key=f"{vehicle_id}_vehicle_type", index = ["Car", "Motorcycle", "Truck"].index(vehicle['vehicle_type'].values[0]))
-				owner_name = st.text_input("Owner Name", key=f"{vehicle_id}_owner_name", value=vehicle['owner_name'].values[0])
-				contact_number = st.text_input("Contact Number", key=f"{vehicle_id}_contact_number", value=vehicle['contact_number'].values[0])
+				license_plate = st.text_input("License Plate", key=f"{vehicle_id}_license_plate", value = vehicle['license_plate'])
+				vehicle_type = st.selectbox("Vehicle Type", ["Car", "Motorcycle", "Truck"], key=f"{vehicle_id}_vehicle_type", index = ["Car", "Motorcycle", "Truck"].index(vehicle['vehicle_type']))
+				owner_name = st.text_input("Owner Name", key=f"{vehicle_id}_owner_name", value=vehicle['owner_name'])
+				contact_number = st.text_input("Contact Number", key=f"{vehicle_id}_contact_number", value=vehicle['contact_number'])
 				edit_vehicle = st.form_submit_button("Edit")
 				
 				if edit_vehicle:
