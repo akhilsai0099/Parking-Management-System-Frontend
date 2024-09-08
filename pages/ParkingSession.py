@@ -1,6 +1,7 @@
 import requests
 import datetime
 import streamlit as st
+import time
 BASE_URL = "http://127.0.0.1:8000"
 
 if "token" in st.session_state:
@@ -60,25 +61,44 @@ def parking_session_form():
 					except requests.exceptions.RequestException as e:
 						st.error(f"Error booking session: {e}")
 
-
-def parking_sessions():
-
+def activeParkingSession(parkingSessionsJson):
 	st.subheader("Active Parking Sessions")
 
-	response = requests.get(f"{BASE_URL}/parking_sessions/", headers=headers)
-	parkingSessionsJson = response.json()
+	
 	parkingSessions = [parkingSession for parkingSession in parkingSessionsJson if parkingSession['actual_exit_time'] is None]
 	if len(parkingSessions)>0:
 		st.dataframe(parkingSessions, use_container_width=True)
+		st.subheader("Exit Parking")
+		with st.form("calculate_price"):
+			parking_session_id = st.selectbox("Select a parking session", [parkingSession['id'] for parkingSession in parkingSessions])
+			submit_price = st.form_submit_button("Pay and Exit")
+			if submit_price:
+				response = requests.put(f"{BASE_URL}/parking_sessions/{parking_session_id}/price", headers=headers)
+				response.raise_for_status()
+				if response.status_code == 200:
+					data = response.json()
+					st.success(f"Price for parking session {parking_session_id}: {data['price']}")
+					time.sleep(1)
+					st.rerun()
+					
+				elif response.status_code == 404:
+					st.error("Parking session not found")
 	else:
 		st.write("No active parking sessions")
 
+def previousParkingSessions(parkingSessionsJson):
 	st.subheader("Previous Parking Sessions")
 	prev_parking_session = [parkingSession for parkingSession in parkingSessionsJson if parkingSession['actual_exit_time'] is not None]
 	if len(prev_parking_session)>0:
 		st.dataframe(prev_parking_session, use_container_width=True)
 	else:
 		st.write("No Prev parking Sessions")
+def parking_sessions():
+	response = requests.get(f"{BASE_URL}/parking_sessions/", headers=headers)
+	parkingSessionsJson = response.json()
+	activeParkingSession(parkingSessionsJson)
+	previousParkingSessions(parkingSessionsJson)
+	
 
 def main():
 	if "token" in st.session_state:
