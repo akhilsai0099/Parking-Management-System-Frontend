@@ -1,7 +1,5 @@
 import streamlit as st
 import requests
-import pandas as pd
-import plotly.express as px
 
 st.set_page_config(page_title="Dashboard", layout="wide")
 BASE_URL = "http://127.0.0.1:8000"
@@ -17,8 +15,8 @@ else:
 			"Authorization": ""
 		}
 
-
-
+def upcomingExits():
+	pass
 def dashboard():
 	st.title("Dashboard")
 	st.write("-----")
@@ -27,15 +25,21 @@ def dashboard():
 		with col1:
 			st.subheader("Free Parking Spots")
 			free_spots = [free_spot for free_spot in df if not free_spot['is_occupied']]
-			st.dataframe(free_spots)
+			if len(free_spots)>0:
+				st.dataframe(free_spots)
+			else:
+				st.write("No free spots available")
 		with col2:
 			st.subheader("Active Parking Spots")
 			occupied_spots = [free_spot for free_spot in df if free_spot['is_occupied']]
-			st.table(occupied_spots)
+			if len(occupied_spots)>0:
+				st.table(occupied_spots)
+			else:
+				st.write("No Occupied spots available")
 		col1, col2 = st.columns(2)
 		with col1:
 			parking_occupancy_chart()
-
+		
 def parking_occupancy_chart():
 	import plotly.express as px
 
