@@ -3,26 +3,27 @@ import requests
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Dashboard", layout="wide")
+st.set_page_config(page_title="Dashboard")
 BASE_URL = "http://127.0.0.1:8000"
 if "token" in st.session_state:
 	headers = {
 			"Authorization": st.session_state['token']
 		}
+	response = requests.get(f"{BASE_URL}/parking_spots/", headers=headers)
+	parking_spots = response.json()
+	df = pd.DataFrame(parking_spots)
 else:
 	headers = {
 			"Authorization": ""
 		}
-	
-response = requests.get(f"{BASE_URL}/parking_spots/", headers=headers)
-parking_spots = response.json()
-df = pd.DataFrame(parking_spots)
+
+
 
 def dashboard():
 	st.title("Dashboard")
 	st.write("-----")
 	col1, col2 = st.columns(2)
-	
+
 	with col1:
 		st.subheader("Free Parking Spots")
 		free_spots = df.loc[df['is_occupied'] == False]
