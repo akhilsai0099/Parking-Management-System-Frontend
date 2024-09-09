@@ -72,6 +72,15 @@ pip install -r requirements.txt
    pytest
    ```
 
-Now, your Parking Management System frontend is set up and ready to run!
-
+Now, Parking Management System frontend is set up and ready to run!
 ## Screenshots of the interface
+![Register](https://github.com/user-attachments/assets/d9e1a3e7-41d2-40bf-8dfa-485d60b5e358)
+![Login](https://github.com/user-attachments/assets/6daec6de-0da1-46fa-a353-ea8d348c3512)
+![Dashboard](https://github.com/user-attachments/assets/6f0a397f-2393-4b94-9334-2133f76816e6)
+![ParkingSpots](https://github.com/user-attachments/assets/b62de99a-1771-4a63-a707-730670332191)
+![Vehicles](https://github.com/user-attachments/assets/43d6b659-95eb-4f6e-bf36-5b397ba07f5d)
+![Parking Session](https://github.com/user-attachments/assets/c8f367cb-4629-4df3-9fad-6daa3d7a2271)
+![Login Error](https://github.com/user-attachments/assets/f68edc09-312e-42c8-bf09-bbb2856e585b)
+![Authorization Error](https://github.com/user-attachments/assets/71c3c7f8-0f42-4cba-9378-d26a9392d854)
+![Logs](https://github.com/user-attachments/assets/51436dca-f378-4d4c-95c7-b93b2096e839)
+
