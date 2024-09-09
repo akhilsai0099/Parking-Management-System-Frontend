@@ -69,7 +69,7 @@ def parkingSpots():
 					exit_distance = st.number_input("Exit Distance", value=parking_spot['exit_distance'])
 					short_term_only = st.checkbox("Short Term Only", value=parking_spot['short_term_only'])
 					is_occupied = st.checkbox("Is Occupied", value=parking_spot['is_occupied'])
-					submit_button = st.form_submit_button("Update Spot", key="update_spot_button")
+					submit_button = st.form_submit_button("Update Spot")
 
 					if submit_button:
 						if not (level and section and spot_number and vehicle_type):

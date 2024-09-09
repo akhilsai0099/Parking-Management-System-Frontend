@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import datetime
 
 st.set_page_config(page_title="Dashboard", layout="wide")
 BASE_URL = "http://127.0.0.1:8000"
@@ -16,7 +17,23 @@ else:
 		}
 
 def upcomingExits():
-	pass
+	response = requests.get(f"{BASE_URL}/parking_sessions/", headers=headers)
+	parking_sessions = response.json()
+	upcoming_exits = [session for session in parking_sessions if session['expected_exit_time'] is not None and session['actual_exit_time'] is None and (datetime.datetime.fromisoformat(session['expected_exit_time']) - datetime.datetime.now()).total_seconds() < 3600]
+	st.subheader("Upcoming Exits")
+	st.write("-----")
+	if len(upcoming_exits)>0:
+		st.dataframe(upcoming_exits)
+	else:
+		st.write("No upcoming exits in the next hour")
+
+def revenue():
+	response = requests.get(f"{BASE_URL}/parking_sessions/revenue", headers=headers)
+	data = response.json()
+	st.subheader("Revenue")
+	st.write(f"Total revenue Generated: ${data['total_revenue']:.2f}")
+	st.write(f"Upcoming revenue: ${data['expected_revenue']:.2f}")
+
 def dashboard():
 	st.title("Dashboard")
 	st.write("-----")
@@ -39,6 +56,10 @@ def dashboard():
 		col1, col2 = st.columns(2)
 		with col1:
 			parking_occupancy_chart()
+		with col2:
+			revenue()
+		upcomingExits()
+		
 		
 def parking_occupancy_chart():
 	import plotly.express as px
