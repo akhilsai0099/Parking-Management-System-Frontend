@@ -42,13 +42,14 @@ def authenticate():
             email = st.text_input("Email")
             password = st.text_input("Password", type="password")
             confirm_password = st.text_input("Confirm Password", type="password")
+            is_admin = st.checkbox("Is Admin")
             submit_register = st.form_submit_button("Register")
 
             if submit_register:
                 if password != confirm_password:
                     st.error("Passwords do not match")
                     return False
-                data = {"email": email, "password": password}
+                data = {"email": email, "password": password, "is_admin": is_admin}
                 response = requests.post(f"{BASE_URL}/register/", json=data)
                 if response.status_code == 200:
                     st.success("User created successfully")
